@@ -3,6 +3,8 @@
 
 from sala import Sala
 from sala3d import Sala3D
+from entrada import Entrada 
+from cliente import Cliente 
 
 # ------------------- DEFINICIÓN DE LA CLASE CINE -------------------
 class Cine:
@@ -13,18 +15,17 @@ class Cine:
 
     # Método constructor: se ejecuta al crear un objeto Cine
     def __init__(self, nombre):
-        # Nombre del cine (privado, no se debería modificar desde fuera)
         self.__nombre = nombre
-        # Lista de salas que contiene el cine (inicialmente vacía)
         self.__salas = []
+        self.registro_entradas = [] # Lista de objetos Entrada
 
-    # ------------------- MÉTODOS -------------------
+    # ------------------- MÉTODOS DE GESTIÓN DE SALAS -------------------
 
     def agregar_sala(self, sala):
         """
         Agrega un objeto Sala o Sala3D al cine.
         """
-        self.__salas.append(sala)  # Añadimos la sala a la lista
+        self.__salas.append(sala) 
         print(f"Sala '{sala.nombre}' agregada al cine {self.__nombre}.")
 
     def mostrar_salas(self):
@@ -32,10 +33,9 @@ class Cine:
         Muestra todas las salas registradas en el cine.
         """
         if not self.__salas:
-            print("No hay salas registradas.")  # Mensaje si no hay salas
+            print("No hay salas registradas.") 
         else:
             print(f"\nSalas del cine {self.__nombre}:")
-            # Recorremos la lista y mostramos el número y nombre de cada sala
             for i, sala in enumerate(self.__salas, start=1):
                 print(f"{i}. {sala.nombre}")
 
@@ -43,69 +43,124 @@ class Cine:
         """
         Busca una sala por su nombre y la devuelve.
         """
-        for sala in self.__salas:  # Recorremos todas las salas
-            if sala.nombre.lower() == nombre.lower():  # Compara ignorando mayúsculas
-                return sala  # Retorna la sala encontrada
-        return None  # Retorna None si no se encontró
+        for sala in self.__salas:
+            if sala.nombre.lower() == nombre.lower():
+                return sala
+        return None
 
-    def vender_entrada(self, nombre_sala, tipo=None, cantidad=1):
-        """
-        Vende entradas en la sala indicada.
-        """
-        sala = self.buscar_sala(nombre_sala)  # Buscamos la sala
-        if sala:  # Si la sala existe
-            # Polimorfismo: llamamos al método adecuado según el tipo de sala
-            if isinstance(sala, Sala3D):
-                print(sala.vender_boleta(tipo, cantidad))
-            else:
-                print(sala.vender_boleta(cantidad))
-        else:
-            print("❌ Sala no encontrada.")  # Mensaje si la sala no existe
+    # ------------------- MÉTODOS DE VENTA Y CANCELACIÓN -------------------
 
-    def cancelar_compra(self, nombre_sala, tipo=None, cantidad=1):
+    def vender_entrada(self, cliente: Cliente, nombre_sala: str, cantidad: int, tipo: str = 'general'):
         """
-        Cancela la compra de entradas en la sala indicada.
+        Vende entradas en la sala indicada y registra la transacción.
         """
         sala = self.buscar_sala(nombre_sala)
-        if sala:
-            # Polimorfismo: usamos el método correcto según sea 2D o 3D
-            if isinstance(sala, Sala3D):
-                print(sala.cancelar_compra(tipo, cantidad))
-            else:
-                print(sala.cancelar_compra(cantidad))
-        else:
+        if not sala:
             print("❌ Sala no encontrada.")
+            return
+
+        try:
+            # 1. Llamar al método de venta de la sala. 
+            # El método debe manejar la diferencia entre Sala (solo general) y Sala3D (general/preferencial)
+            if isinstance(sala, Sala3D):
+                # Sala 3D necesita el 'tipo' para vender
+                precio_total, sillas_reservadas = sala.vender_boleta(tipo, cantidad)
+            else:
+                # Sala 2D (solo tiene un precio/tipo), solo necesita la 'cantidad'
+                precio_total, sillas_reservadas = sala.vender_boleta(cantidad)
+            
+            # 2. Crear y registrar el objeto Entrada con los datos críticos
+            nueva_entrada = Entrada(
+                cliente=cliente, 
+                sala_nombre=nombre_sala, 
+                categoria=tipo, 
+                cantidad=cantidad, 
+                precio_total=precio_total,
+                sillas_reservadas=sillas_reservadas # CRÍTICO: Registramos qué sillas se compraron
+            )
+            self.registro_entradas.append(nueva_entrada)
+            print(f"✅ Venta exitosa (ID {nueva_entrada.id}). {cantidad} boletas en '{nombre_sala}' por ${precio_total:,.2f}.")
+            print(f"   Sillas reservadas: {sillas_reservadas}")
+            
+        except ValueError as e:
+            # Captura errores de falta de disponibilidad
+            print(f"❌ Venta fallida en '{nombre_sala}': {e}")
+
+    def cancelar_compra(self, id_compra):
+        """
+        Cancela la compra buscando por ID, libera las sillas y elimina el registro.
+        """
+        entrada_a_cancelar = None
+        index_a_eliminar = -1
+
+        # 1. Buscar la entrada por ID
+        for i, entrada in enumerate(self.registro_entradas):
+            if entrada.id == id_compra:
+                entrada_a_cancelar = entrada
+                index_a_eliminar = i
+                break
+
+        if entrada_a_cancelar is None:
+            print(f"❌ Error: No se encontró la compra con ID {id_compra}.")
+            return
+
+        # 2. Encontrar la sala afectada
+        sala = self.buscar_sala(entrada_a_cancelar.sala_nombre)
+        if not sala:
+            print(f"⚠️ Advertencia: Sala '{entrada_a_cancelar.sala_nombre}' no encontrada. Solo se eliminará el registro de venta.")
+            self.registro_entradas.pop(index_a_eliminar)
+            return
+
+        # 3. Liberar las sillas en la sala
+        sillas = entrada_a_cancelar.sillas_reservadas
+        tipo = entrada_a_cancelar.categoria
+        
+        try:
+            if isinstance(sala, Sala3D):
+                # Sala 3D necesita el tipo de silla (general/preferencial) para liberar
+                liberadas = sala.liberar_boleta(tipo, sillas)
+            else:
+                # Sala 2D solo necesita la lista de sillas
+                liberadas = sala.liberar_boleta(sillas)
+            
+            # 4. Eliminar el registro de entrada
+            if liberadas == entrada_a_cancelar.cantidad:
+                self.registro_entradas.pop(index_a_eliminar)
+                print(f"✅ Cancelación exitosa (ID {id_compra}). Se liberaron {liberadas} sillas en '{sala.nombre}'.")
+            else:
+                # Caso de error si no se liberaron todas las sillas correctamente
+                print(f"⚠️ Error parcial: Solo se liberaron {liberadas} de {entrada_a_cancelar.cantidad} sillas. Revise la sala.")
+
+        except Exception as e:
+            print(f"❌ Error al liberar sillas en '{sala.nombre}': {e}")
+
+
+    # ------------------- MÉTODOS DE REPORTE -------------------
 
     def mostrar_reporte(self):
         """
-        Muestra un resumen del cine, mostrando la disponibilidad
-        de sillas en cada sala.
+        Muestra un resumen del cine, disponibilidad de salas y ventas totales.
         """
         print(f"\n--- REPORTE DEL CINE {self.__nombre} ---")
+        
+        # Reporte de Disponibilidad de Salas
+        print("\n[DISPONIBILIDAD DE SALAS]")
+        if not self.__salas:
+            print("No hay salas registradas.")
         for sala in self.__salas:
-            sala.mostrar_disponibles()  # Cada sala muestra su disponibilidad
+            sala.mostrar_disponibles()
 
+        # Reporte de Ventas
+        print("\n[REGISTRO DE VENTAS]")
+        if not self.registro_entradas:
+            print("No hay ventas registradas.")
+            return
 
-# ------------------- PRUEBA -------------------
-
-if __name__ == "__main__":
-    # Crear salas: una 2D y otra 3D
-    sala2d = Sala("Sala 2D", 50, 10000)  # 50 sillas, precio 10000
-    sala3d = Sala3D("Sala 3D", 30, 10, 15000, 20000)  # 30 generales, 10 preferenciales
-
-    # Crear el cine
-    cine = Cine("Cine UAO")
-
-    # Agregar las salas al cine
-    cine.agregar_sala(sala2d)
-    cine.agregar_sala(sala3d)
-
-    # Mostrar todas las salas del cine
-    cine.mostrar_salas()
-
-    # Vender entradas
-    cine.vender_entrada("Sala 2D", cantidad=2)  # 2 entradas 2D
-    cine.vender_entrada("Sala 3D", tipo="preferencial", cantidad=3)  # 3 entradas preferenciales 3D
-
-    # Mostrar reporte final con disponibilidad de todas las salas
-    cine.mostrar_reporte()
+        total_ventas = sum(e.precio_total for e in self.registro_entradas)
+        print(f"Total de Compras Registradas: {len(self.registro_entradas)}")
+        print(f"INGRESOS TOTALES ESTIMADOS: ${total_ventas:,.2f}")
+        
+        # Mostrar detalle de cada venta (opcional)
+        print("\n--- Detalle de Ventas ---")
+        for entrada in self.registro_entradas:
+            entrada.mostrar_info()
