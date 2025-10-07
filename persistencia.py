@@ -57,6 +57,3 @@ class GestorPersistencia:
             print(f"[ERROR] Fallo al cargar datos (el archivo podría estar corrupto): {e}")
             # Si hay un error, lo tratamos como un inicio limpio
             return None
-
-# Nota: El objeto Cine tiene un atributo privado (__salas), 
-# accedemos a él mediante el 'name mangling': _Cine__salas.

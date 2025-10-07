@@ -3,7 +3,7 @@
 # Actualizado: Incluye ID único, registro de las sillas reservadas y es funcional con la persistencia.
 
 class Entrada:
-    # ----------------- ATRIBUTO ESTÁTICO -----------------
+    # ATRIBUTO ESTÁTICO
     # Contador usado para asignar un ID único a cada compra.
     # Es crucial para la persistencia.
     compra_id_counter = 0
@@ -36,7 +36,7 @@ class Entrada:
         print(f"Total a pagar: ${self.precio_total:,.2f}")
 
 
-# ---------------- PRUEBA RÁPIDA ----------------
+# PRUEBA RÁPIDA
 if __name__ == "__main__":
     from cliente import Cliente
     

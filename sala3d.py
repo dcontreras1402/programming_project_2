@@ -2,7 +2,6 @@
 # Descripción: Representa una sala de cine 3D con categoría general y preferencial.
 
 from sala import Sala
-import math # Importamos math para usar math.ceil en caso de ser necesario, aunque lo quitaremos por simplicidad.
 
 class Sala3D(Sala):
     def __init__(self, nombre, total_general, total_preferencial, precio_general, precio_preferencial):
@@ -65,7 +64,7 @@ class Sala3D(Sala):
             
             total = float(cantidad * self.precio_preferencial)
             
-            # CRÍTICO: Devolver el precio y las sillas para que Cine las guarde en Entrada
+            # Devolver el precio y las sillas para que Cine las guarde en Entrada
             return total, sillas_reservadas
             
         else:
@@ -102,11 +101,11 @@ class Sala3D(Sala):
             return liberadas
             
         else:
-            # Aunque Cine debería manejar esto, devolvemos 0 en caso de tipo inválido
+            # Aunque Cine debe manejar esto, devuelve 0 en caso de tipo inválido
             return 0
 
 
-# ---------------- PRUEBA RÁPIDA ----------------
+# PRUEBA RÁPIDA
 if __name__ == "__main__":
     # 10 sillas generales (ID 1-10) a 10000
     # 5 sillas preferenciales (ID 11-15) a 15000

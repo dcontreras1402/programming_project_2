@@ -6,7 +6,7 @@ from sala3d import Sala3D
 from entrada import Entrada 
 from cliente import Cliente 
 
-# ------------------- DEFINICIÓN DE LA CLASE CINE -------------------
+# DEFINICIÓN DE LA CLASE CINE
 class Cine:
     """
     Clase que representa un cine, que contiene varias salas (2D o 3D)
@@ -19,7 +19,7 @@ class Cine:
         self.__salas = []
         self.registro_entradas = [] # Lista de objetos Entrada
 
-    # ------------------- MÉTODOS DE GESTIÓN DE SALAS -------------------
+    # MÉTODOS DE GESTIÓN DE SALAS
 
     def agregar_sala(self, sala):
         """
@@ -48,7 +48,7 @@ class Cine:
                 return sala
         return None
 
-    # ------------------- MÉTODOS DE VENTA Y CANCELACIÓN -------------------
+    # MÉTODOS DE VENTA Y CANCELACIÓN
 
     def vender_entrada(self, cliente: Cliente, nombre_sala: str, cantidad: int, tipo: str = 'general'):
         """
@@ -76,7 +76,7 @@ class Cine:
                 categoria=tipo, 
                 cantidad=cantidad, 
                 precio_total=precio_total,
-                sillas_reservadas=sillas_reservadas # CRÍTICO: Registramos qué sillas se compraron
+                sillas_reservadas=sillas_reservadas # Registramos qué sillas se compraron
             )
             self.registro_entradas.append(nueva_entrada)
             print(f"✅ Venta exitosa (ID {nueva_entrada.id}). {cantidad} boletas en '{nombre_sala}' por ${precio_total:,.2f}.")
@@ -135,7 +135,7 @@ class Cine:
             print(f"❌ Error al liberar sillas en '{sala.nombre}': {e}")
 
 
-    # ------------------- MÉTODOS DE REPORTE -------------------
+    # MÉTODOS DE REPORTE
 
     def mostrar_reporte(self):
         """

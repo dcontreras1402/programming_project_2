@@ -59,7 +59,7 @@ class Sala:
         return len(indices_a_liberar) # Devolvemos la cantidad de sillas liberadas
 
 
-# ---------------- PRUEBA RÁPIDA ----------------
+# PRUEBA RÁPIDA 
 if __name__ == "__main__":
     sala_prueba = Sala("Sala 2D Prueba", 10, 10000.00)
     sala_prueba.mostrar_disponibles()

@@ -14,7 +14,7 @@ class Cliente:
         print(f"Correo: {self.correo}")
 
 
-# ---------------- PRUEBA RÁPIDA ----------------
+# PRUEBA RÁPIDA
 if __name__ == "__main__":
     cliente1 = Cliente("Juan Pérez", "123456789", "juan@mail.com")
     cliente1.mostrar_info()

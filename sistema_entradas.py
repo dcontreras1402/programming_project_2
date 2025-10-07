@@ -6,7 +6,7 @@ from sala3d import Sala3D
 from persistencia import GestorPersistencia
 
 
-# ---------------- FUNCIONES DE INTERFAZ ----------------
+# FUNCIONES DE INTERFAZ
 
 def obtener_cliente_info() -> Optional[Cliente]:
     """Solicita y valida los datos del cliente."""
@@ -123,7 +123,7 @@ def menu_principal(cine: Cine):
             print("[ERROR] Opción no válida. Intente de nuevo.")
 
 
-# ---------------- BLOQUE MAIN: El sistema de ejecución ----------------
+# BLOQUE MAIN: El sistema de ejecución
 if __name__ == '__main__':
     
     # 1. Crear el objeto Cine
